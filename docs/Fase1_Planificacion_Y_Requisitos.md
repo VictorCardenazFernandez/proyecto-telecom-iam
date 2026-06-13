@@ -170,7 +170,7 @@ El backlog se organiza en columnas Kanban: **To Do | In Progress | Review | Done
 
 | **To Do** | **In Progress** | **Review** | **Done** |
 |---|---|---|---|
-| HU-01 a HU-14 (todas las técnicas) | — | — | HU-15 — Repositorio creado, README inicial, docker-compose base definido |
+| HU-01 a HU-14 (todas las técnicas) | Terminado | — | HU-15 — Repositorio creado, README inicial, docker-compose base definido |
 | | | | Documento de Planificación y Requisitos (este documento) |
 | | | | Definición de actores y arquitectura conceptual |
 

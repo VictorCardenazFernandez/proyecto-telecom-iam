@@ -1,0 +1,78 @@
+version: "3.8"
+
+# ============================================================
+# Infraestructura Unificada de Comunicaciones y Gestión de Identidad
+# Servicios: db (MariaDB), midpoint (IAM), asterisk (PBX/VoIP)
+# Las variables sensibles se cargan desde .env (ver .env.example)
+# ============================================================
+
+services:
+
+  db:
+    image: mariadb:10.6
+    container_name: db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - backend-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  midpoint:
+    build:
+      context: ./midpoint
+    image: evolveum/midpoint
+    container_name: midpoint
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      MP_SET_midpoint_repository_jdbcUsername: ${DB_USER}
+      MP_SET_midpoint_repository_jdbcPassword: ${DB_PASSWORD}
+      MP_SET_midpoint_repository_jdbcUrl: jdbc:mariadb://db:3306/${DB_NAME}
+    ports:
+      - "8080:8080"
+    volumes:
+      - midpoint_data:/opt/midpoint/var
+      - ./midpoint/resources:/opt/midpoint/resources:ro
+    networks:
+      - backend-net
+
+  asterisk:
+    build:
+      context: ./asterisk
+    container_name: asterisk
+    restart: unless-stopped
+    depends_on:
+      - midpoint
+    ports:
+      - "5060:5060/udp"
+      - "5060:5060/tcp"
+      - "10000-10100:10000-10100/udp"
+    volumes:
+      - asterisk_config:/etc/asterisk
+      - ./asterisk/configs:/etc/asterisk/seed:ro
+    networks:
+      - backend-net
+
+networks:
+  backend-net:
+    driver: bridge
+
+volumes:
+  db_data:
+  midpoint_data:
+  asterisk_config:

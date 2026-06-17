@@ -1,78 +1,59 @@
-version: "3.8"
-
-# ============================================================
-# Infraestructura Unificada de Comunicaciones y Gestión de Identidad
-# Servicios: db (MariaDB), midpoint (IAM), asterisk (PBX/VoIP)
-# Las variables sensibles se cargan desde .env (ver .env.example)
-# ============================================================
-
 services:
 
-  db:
-    image: mariadb:10.6
-    container_name: db
-    restart: unless-stopped
+  postgres:
+    image: postgres:16
+    container_name: postgres
+
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: telecom
+      POSTGRES_USER: telecom
+      POSTGRES_PASSWORD: telecom123
+
     ports:
-      - "3306:3306"
+      - "5432:5432"
+
     volumes:
-      - db_data:/var/lib/mysql
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    networks:
-      - backend-net
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql   # minúscula
+
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "pg_isready -U telecom -d telecom"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
   midpoint:
     build:
       context: ./midpoint
-    image: evolveum/midpoint
     container_name: midpoint
-    restart: unless-stopped
-    depends_on:
-      db:
-        condition: service_healthy
     environment:
-      MP_SET_midpoint_repository_jdbcUsername: ${DB_USER}
-      MP_SET_midpoint_repository_jdbcPassword: ${DB_PASSWORD}
-      MP_SET_midpoint_repository_jdbcUrl: jdbc:mariadb://db:3306/${DB_NAME}
+      MP_SET_midpoint_repository_jdbcUrl: "jdbc:postgresql://postgres:543docker exec -it midpoint bash2/midpoint"
+      MP_SET_midpoint_repository_jdbcUsername: "telecom"
+      MP_SET_midpoint_repository_jdbcPassword: "telecom123"
+      MP_SET_midpoint_repository_database: "postgresql"
+      JAVA_OPTS: "-Xmx2048m"
     ports:
       - "8080:8080"
-    volumes:
-      - midpoint_data:/opt/midpoint/var
-      - ./midpoint/resources:/opt/midpoint/resources:ro
-    networks:
-      - backend-net
+    depends_on:
+      postgres:
+        condition: service_healthy   # espera a que postgres esté listo
 
   asterisk:
-    build:
-      context: ./asterisk
+    image: andrius/asterisk:latest
+
     container_name: asterisk
-    restart: unless-stopped
-    depends_on:
-      - midpoint
+
     ports:
       - "5060:5060/udp"
-      - "5060:5060/tcp"
       - "10000-10100:10000-10100/udp"
+
     volumes:
-      - asterisk_config:/etc/asterisk
-      - ./asterisk/configs:/etc/asterisk/seed:ro
-    networks:
-      - backend-net
+      - ./asterisk/sip.conf:/etc/asterisk/sip.conf
+      - ./asterisk/extensions.conf:/etc/asterisk/extensions.conf
+
+    depends_on:
+      - midpoint
 
 networks:
-  backend-net:
+  default:
     driver: bridge
-
-volumes:
-  db_data:
-  midpoint_data:
-  asterisk_config:

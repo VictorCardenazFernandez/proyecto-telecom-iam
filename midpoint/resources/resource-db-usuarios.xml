@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    resource-db-usuarios.xml
+    ========================
+    Recurso midPoint tipo "DatabaseTable" que apunta a la tabla `usuarios`
+    de PostgreSQL. midPoint lee esta tabla como "fuente de la verdad"
+    de identidades del call center.
+
+    Para importar: Consola midPoint → Import Object → subir este XML.
+
+    Fase 3 — Laboratorio de Integración de Sistemas
+-->
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          oid="8a2f4c10-0000-0000-0000-000000000001">
+
+    <name>BD Usuarios — Fuente de Identidades</name>
+    <description>
+        Recurso que conecta midPoint con la tabla 'usuarios' en PostgreSQL.
+        Actúa como la fuente canónica de identidades para el call center.
+        Los usuarios con rol 'AgenteCallCenter' son sincronizados para
+        que el provisioner genere sus extensiones SIP en Asterisk.
+    </description>
+
+    <!-- ── Conector: DatabaseTable incluido en midPoint ── -->
+    <connectorRef type="ConnectorType">
+        <filter>
+            <q:equal xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+                <q:path>connectorType</q:path>
+                <q:value>org.identityconnectors.databasetable.DatabaseTableConnector</q:value>
+            </q:equal>
+        </filter>
+    </connectorRef>
+
+    <!-- ── Parámetros de conexión a la BD ── -->
+    <connectorConfiguration
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties
+            xmlns:ictc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.databasetable-connector/org.identityconnectors.databasetable.DatabaseTableConfiguration">
+
+            <!-- Driver y URL PostgreSQL -->
+            <ictc:jdbcDriver>org.postgresql.Driver</ictc:jdbcDriver>
+            <ictc:jdbcUrlTemplate>jdbc:postgresql://postgres:5432/telecom</ictc:jdbcUrlTemplate>
+            <ictc:user>telecom</ictc:user>
+            <ictc:password>
+                <clearValue>telecom123</clearValue>
+            </ictc:password>
+
+            <!-- Mapeo de la tabla -->
+            <ictc:table>usuarios</ictc:table>
+            <ictc:keyColumn>id</ictc:keyColumn>
+            <ictc:passwordColumn>password</ictc:passwordColumn>
+            <ictc:changeLogColumn>updated_at</ictc:changeLogColumn>
+        </icfc:configurationProperties>
+    </connectorConfiguration>
+
+    <!-- ── Esquema del recurso (columnas de la tabla) ── -->
+    <schema>
+        <definition>
+            <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                        xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3">
+                <xsd:complexType name="AccountObjectClass">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <ra:resourceObject/>
+                            <ra:identifier>icfs:uid</ra:identifier>
+                            <ra:displayNameAttribute>ri:username</ra:displayNameAttribute>
+                            <ra:namingAttribute>ri:username</ra:namingAttribute>
+                            <ra:kind>account</ra:kind>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                    <xsd:sequence>
+                        <xsd:element name="id"       type="xsd:string"/>
+                        <xsd:element name="username" type="xsd:string"/>
+                        <xsd:element name="password" type="xsd:string"/>
+                        <xsd:element name="rol"      type="xsd:string"/>
+                        <xsd:element name="activo"   type="xsd:boolean"/>
+                        <xsd:element name="nombre"   type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="email"    type="xsd:string" minOccurs="0"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:schema>
+        </definition>
+    </schema>
+
+    <!-- ── Mappings: cómo los atributos del recurso se mapean a midPoint ── -->
+    <schemaHandling>
+        <objectType>
+            <kind>account</kind>
+            <displayName>Cuenta de Usuario</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+
+            <!-- Nombre de usuario → midPoint name -->
+            <attribute>
+                <ref>icfs:name</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <target>
+                        <path>name</path>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <!-- Nombre completo → fullName -->
+            <attribute>
+                <ref>ri:nombre</ref>
+                <inbound>
+                    <target>
+                        <path>fullName</path>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <!-- Email -->
+            <attribute>
+                <ref>ri:email</ref>
+                <inbound>
+                    <target>
+                        <path>emailAddress</path>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <!-- Rol: si es 'AgenteCallCenter', asignar el rol correspondiente en midPoint -->
+            <attribute>
+                <ref>ri:rol</ref>
+                <inbound>
+                    <expression>
+                        <script>
+                            <code>
+                                if (input == 'AgenteCallCenter') {
+                                    return 'AgenteCallCenter'
+                                }
+                                return null
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>subtype</path>
+                    </target>
+                </inbound>
+            </attribute>
+
+            <!-- Activación: columna activo → enabled/disabled -->
+            <activation>
+                <administrativeStatus>
+                    <inbound>
+                        <expression>
+                            <script>
+                                <code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
+                                    if (input) {
+                                        return ActivationStatusType.ENABLED
+                                    } else {
+                                        return ActivationStatusType.DISABLED
+                                    }
+                                </code>
+                            </script>
+                        </expression>
+                    </inbound>
+                </administrativeStatus>
+            </activation>
+        </objectType>
+    </schemaHandling>
+
+    <!-- ── Sincronización: tarea de reconciliación periódica ── -->
+    <synchronization>
+        <objectSynchronization>
+            <enabled>true</enabled>
+            <objectClass>ri:AccountObjectClass</objectClass>
+            <kind>account</kind>
+
+            <correlation>
+                <q:equal xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+                    <q:path>name</q:path>
+                    <expression>
+                        <path>$account/attributes/icfs:name</path>
+                    </expression>
+                </q:equal>
+            </correlation>
+
+            <!-- Situación: usuario nuevo en BD → crear en midPoint -->
+            <reaction>
+                <situation>unmatched</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+                </action>
+            </reaction>
+
+            <!-- Situación: usuario sincronizado → actualizar midPoint -->
+            <reaction>
+                <situation>unlinked</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+                </action>
+            </reaction>
+
+            <reaction>
+                <situation>linked</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#synchronize</handlerUri>
+                </action>
+            </reaction>
+
+            <!-- Situación: usuario desactivado en BD → deshabilitar en midPoint -->
+            <reaction>
+                <situation>deleted</situation>
+                <action>
+                    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#inactivateFocus</handlerUri>
+                </action>
+            </reaction>
+        </objectSynchronization>
+    </synchronization>
+</resource>

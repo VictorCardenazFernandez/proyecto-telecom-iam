@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    role-agente-call-center.xml
+    ===========================
+    Definición del rol "AgenteCallCenter" en midPoint.
+    Este rol controla quién recibe una extensión SIP en Asterisk.
+
+    Importar en: Consola midPoint → Import Object
+-->
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="8a2f4c10-0000-0000-0000-000000000002">
+
+    <name>AgenteCallCenter</name>
+    <description>
+        Rol asignado a los agentes del call center.
+        Los usuarios con este rol reciben automáticamente una extensión SIP
+        en Asterisk a través del microservicio provisioner.
+        Cumplimiento: ISO 27001 Control A.9.2 (Provisión de acceso de usuarios).
+    </description>
+
+    <!-- Inducement: qué permisos/recursos activa este rol -->
+    <inducement>
+        <construction>
+            <!-- Construir una cuenta en el recurso BD-Usuarios si el rol está activo -->
+            <resourceRef oid="8a2f4c10-0000-0000-0000-000000000001" type="ResourceType"/>
+            <kind>account</kind>
+        </construction>
+    </inducement>
+
+    <!-- Política de contraseñas para usuarios con este rol -->
+    <policyException>
+        <ruleName>Contraseña SIP generada automáticamente</ruleName>
+    </policyException>
+</role>

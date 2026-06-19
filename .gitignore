@@ -1,0 +1,13 @@
+# Variables de entorno (nunca subir al repo)
+.env
+
+# Archivos generados por el provisioner
+asterisk/agents/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Docker
+*.log

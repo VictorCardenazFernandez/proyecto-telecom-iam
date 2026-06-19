@@ -1,33 +1,40 @@
+version: "3.8"
+
+# ============================================================
+# Infraestructura Unificada de Comunicaciones y Gestión de Identidad
+# Fase 3: Integración midPoint → PostgreSQL → Asterisk
+# ============================================================
+
 services:
 
   postgres:
     image: postgres:16
     container_name: postgres
-
     environment:
       POSTGRES_DB: telecom
       POSTGRES_USER: telecom
       POSTGRES_PASSWORD: telecom123
-
     ports:
       - "5432:5432"
-
     volumes:
-      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql   # minúscula
-
+      - db_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U telecom -d telecom"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 30s
+    networks:
+      - backend-net
 
   midpoint:
     build:
       context: ./midpoint
     container_name: midpoint
     environment:
-      MP_SET_midpoint_repository_jdbcUrl: "jdbc:postgresql://postgres:543docker exec -it midpoint bash2/midpoint"
+      # BUGFIX: URL corregida (estaba rota en la versión anterior)
+      MP_SET_midpoint_repository_jdbcUrl: "jdbc:postgresql://postgres:5432/midpoint"
       MP_SET_midpoint_repository_jdbcUsername: "telecom"
       MP_SET_midpoint_repository_jdbcPassword: "telecom123"
       MP_SET_midpoint_repository_database: "postgresql"
@@ -36,24 +43,60 @@ services:
       - "8080:8080"
     depends_on:
       postgres:
-        condition: service_healthy   # espera a que postgres esté listo
+        condition: service_healthy
+    volumes:
+      - midpoint_data:/opt/midpoint/var
+      - ./midpoint/resources:/opt/midpoint/var/import:ro
+    networks:
+      - backend-net
 
   asterisk:
     image: andrius/asterisk:latest
-
     container_name: asterisk
-
     ports:
       - "5060:5060/udp"
       - "10000-10100:10000-10100/udp"
-
+      - "5038:5038"           # AMI (Asterisk Manager Interface)
     volumes:
       - ./asterisk/sip.conf:/etc/asterisk/sip.conf
       - ./asterisk/extensions.conf:/etc/asterisk/extensions.conf
-
+      - ./asterisk/manager.conf:/etc/asterisk/manager.conf
+      # sip_agents.conf es generado dinámicamente por el provisioner
+      - asterisk_agents:/etc/asterisk/agents
     depends_on:
       - midpoint
+    networks:
+      - backend-net
+
+  # Microservicio de aprovisionamiento: lee la BD y genera las cuentas SIP
+  provisioner:
+    build:
+      context: ./provision
+    container_name: provisioner
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: telecom
+      DB_USER: telecom
+      DB_PASSWORD: telecom123
+      AMI_HOST: asterisk
+      AMI_PORT: 5038
+      AMI_USER: provisioner
+      AMI_SECRET: prov1234
+      POLL_INTERVAL: 30       # segundos entre chequeos de sincronización
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - asterisk_agents:/etc/asterisk/agents  # volumen compartido con Asterisk
+    networks:
+      - backend-net
 
 networks:
-  default:
+  backend-net:
     driver: bridge
+
+volumes:
+  db_data:
+  midpoint_data:
+  asterisk_agents:

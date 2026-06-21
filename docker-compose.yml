@@ -63,7 +63,7 @@ services:
       - "10000-10100:10000-10100/udp"
       - "5038:5038"           # AMI (Asterisk Manager Interface)
     volumes:
-      - ./asterisk/sip.conf:/etc/asterisk/sip.conf
+      - ./asterisk/pjsip.conf:/etc/asterisk/pjsip.conf
       - ./asterisk/extensions.conf:/etc/asterisk/extensions.conf
       - ./asterisk/manager.conf:/etc/asterisk/manager.conf
       # sip_agents.conf es generado dinámicamente por el provisioner

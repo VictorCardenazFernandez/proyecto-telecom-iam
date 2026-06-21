@@ -8,8 +8,10 @@ Responsabilidades:
   2. Para cada usuario con rol 'AgenteCallCenter' y activo=TRUE:
        - Generar (o reutilizar) una extensión SIP y una contraseña segura.
        - Escribir/actualizar la tabla `extensiones_sip`.
-  3. Regenerar el archivo `/etc/asterisk/agents/sip_agents.conf`.
-  4. Notificar a Asterisk vía AMI para que recargue la config SIP en caliente.
+  3. Regenerar el archivo `/etc/asterisk/agents/pjsip_agents.conf`
+     (triadas endpoint/auth/aor, formato PJSIP).
+  4. Notificar a Asterisk vía AMI ("pjsip reload") para que recargue
+     la configuración PJSIP en caliente.
   5. Registrar cada acción en la tabla `auditoria` (ISO 27001 – A.8.16).
   6. Repetir cada POLL_INTERVAL segundos (modo demonio).
 """
@@ -41,7 +43,7 @@ AMI_USER     = os.getenv("AMI_USER",     "provisioner")
 AMI_SECRET   = os.getenv("AMI_SECRET",   "prov1234")
 
 POLL_INTERVAL      = int(os.getenv("POLL_INTERVAL", "30"))
-SIP_AGENTS_PATH    = os.getenv("SIP_AGENTS_PATH", "/etc/asterisk/agents/sip_agents.conf")
+SIP_AGENTS_PATH    = os.getenv("SIP_AGENTS_PATH", "/etc/asterisk/agents/pjsip_agents.conf")
 
 # Rango de extensiones asignadas automáticamente
 EXTENSION_START = 1001
@@ -168,20 +170,30 @@ def registrar_auditoria(conn, cur, accion: str, usuario_id: int | None,
 
 
 # ─────────────────────────────────────────────
-# Generación de sip_agents.conf
+# Generación de pjsip_agents.conf
 # ─────────────────────────────────────────────
 
 def generar_sip_agents_conf(agentes_con_extension: list[dict]) -> str:
     """
-    Genera el contenido de sip_agents.conf a partir de los datos
-    sincronizados. Cada agente se convierte en una sección SIP estándar.
+    Genera el contenido de pjsip_agents.conf a partir de los datos
+    sincronizados. PJSIP requiere, por cada agente, tres secciones
+    sorcery (mismo nombre de sección, distinguidas por 'type='):
+      - type=endpoint : políticas de medios, contexto, codecs, callerid.
+      - type=auth      : credenciales (equivalente al 'secret' de chan_sip).
+      - type=aor       : dirección de contacto dinámica (equivalente a
+                          host=dynamic en chan_sip).
 
     Regla de negocio: solo usuarios APROVISIONADOS y activos aparecen aquí.
     Esta función es la principal candidata a tests unitarios.
+
+    Nota: el nombre de la función se mantiene (generar_sip_agents_conf)
+    por compatibilidad con el resto del código y los tests, aunque desde
+    la migración a PJSIP el contenido que produce y el archivo donde se
+    escribe (pjsip_agents.conf) usan la sintaxis PJSIP.
     """
     timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
     lineas = [
-        f"; sip_agents.conf — Generado automáticamente por el provisioner",
+        f"; pjsip_agents.conf — Generado automáticamente por el provisioner",
         f"; Última actualización: {timestamp}",
         f"; NO EDITAR MANUALMENTE — los cambios serán sobreescritos.",
         "",
@@ -196,16 +208,30 @@ def generar_sip_agents_conf(agentes_con_extension: list[dict]) -> str:
         lineas += [
             f"; Agente: {nombre} ({username})",
             f"[{ext}]",
-            f"type=friend",
-            f"secret={secret}",
-            f"host=dynamic",
+            f"type=endpoint",
             f"context=interno",
-            f"callerid={nombre} <{ext}>",
-            f"dtmfmode=rfc2833",
             f"disallow=all",
             f"allow=ulaw",
             f"allow=alaw",
-            f"nat=force_rport,comedia",
+            f"auth={ext}",
+            f"aors={ext}",
+            f"callerid={nombre} <{ext}>",
+            f"dtmf_mode=rfc4733",
+            f"direct_media=no",
+            f"rtp_symmetric=yes",
+            f"force_rport=yes",
+            f"rewrite_contact=yes",
+            "",
+            f"[{ext}]",
+            f"type=auth",
+            f"auth_type=userpass",
+            f"username={ext}",
+            f"password={secret}",
+            "",
+            f"[{ext}]",
+            f"type=aor",
+            f"max_contacts=1",
+            f"remove_existing=yes",
             "",
         ]
 
@@ -217,7 +243,7 @@ def escribir_sip_agents_conf(contenido: str):
     os.makedirs(os.path.dirname(SIP_AGENTS_PATH), exist_ok=True)
     with open(SIP_AGENTS_PATH, "w", encoding="utf-8") as f:
         f.write(contenido)
-    log.info(f"sip_agents.conf escrito en {SIP_AGENTS_PATH}")
+    log.info(f"pjsip_agents.conf escrito en {SIP_AGENTS_PATH}")
 
 
 # ─────────────────────────────────────────────
@@ -226,8 +252,12 @@ def escribir_sip_agents_conf(contenido: str):
 
 def ami_reload_sip():
     """
-    Conecta al AMI de Asterisk y ejecuta un reload del módulo SIP
-    para que Asterisk lea el nuevo sip_agents.conf sin reiniciarse.
+    Conecta al AMI de Asterisk y ejecuta un reload del módulo PJSIP
+    para que Asterisk lea el nuevo pjsip_agents.conf sin reiniciarse.
+
+    Requiere que el usuario AMI tenga la clase de privilegio 'command'
+    en manager.conf (write = ...,command), o Asterisk responderá
+    "Permission denied" aunque el login sea exitoso.
     """
     try:
         with socket.create_connection((AMI_HOST, AMI_PORT), timeout=5) as sock:
@@ -247,14 +277,14 @@ def ami_reload_sip():
                 log.error(f"AMI login fallido: {resp.strip()}")
                 return False
 
-            # SIP Reload
-            reload_cmd = "Action: Command\r\nCommand: sip reload\r\n\r\n"
+            # PJSIP Reload
+            reload_cmd = "Action: Command\r\nCommand: pjsip reload\r\n\r\n"
             sock.sendall(reload_cmd.encode())
             sock.recv(1024)
 
             # Logoff
             sock.sendall(b"Action: Logoff\r\n\r\n")
-            log.info("AMI: sip reload ejecutado exitosamente")
+            log.info("AMI: pjsip reload ejecutado exitosamente")
             return True
 
     except (ConnectionRefusedError, OSError) as e:
@@ -272,7 +302,7 @@ def sincronizar(conn):
     Ejecuta un ciclo completo de sincronización:
       1. Lee agentes activos de la BD.
       2. Asigna extensiones a los que no tienen.
-      3. Regenera sip_agents.conf.
+      3. Regenera pjsip_agents.conf.
       4. Recarga Asterisk.
     """
     agentes = get_agentes_activos(conn)

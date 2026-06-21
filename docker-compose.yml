@@ -1,8 +1,7 @@
-version: "3.8"
-
 # ============================================================
 # Infraestructura Unificada de Comunicaciones y Gestión de Identidad
 # Fase 3: Integración midPoint → PostgreSQL → Asterisk
+# Fase 4: Migración a PJSIP + validación de calidad y seguridad
 # ============================================================
 
 services:
@@ -55,6 +54,20 @@ services:
     networks:
       - backend-net
 
+  # Inicializador: crea /var/log/asterisk/cdr-csv con los permisos
+  # correctos (usuario 'asterisk', no root) ANTES de que arranque
+  # Asterisk. Corre una vez por cada "docker compose up" y termina.
+  # Esto evita tener que hacer mkdir/chown manualmente cada vez que
+  # alguien del equipo clona el repo o recrea el contenedor.
+  asterisk-init:
+    image: andrius/asterisk:latest
+    container_name: asterisk-init
+    entrypoint: ["sh", "-c", "mkdir -p /var/log/asterisk/cdr-csv && chown -R asterisk:asterisk /var/log/asterisk/cdr-csv && echo 'cdr-csv listo'"]
+    volumes:
+      - asterisk_logs:/var/log/asterisk
+    networks:
+      - backend-net
+
   asterisk:
     image: andrius/asterisk:latest
     container_name: asterisk
@@ -66,10 +79,15 @@ services:
       - ./asterisk/pjsip.conf:/etc/asterisk/pjsip.conf
       - ./asterisk/extensions.conf:/etc/asterisk/extensions.conf
       - ./asterisk/manager.conf:/etc/asterisk/manager.conf
+      - ./asterisk/rtp.conf:/etc/asterisk/rtp.conf
+      - asterisk_logs:/var/log/asterisk
       # sip_agents.conf es generado dinámicamente por el provisioner
       - asterisk_agents:/etc/asterisk/agents
     depends_on:
-      - midpoint
+      midpoint:
+        condition: service_started
+      asterisk-init:
+        condition: service_completed_successfully
     networks:
       - backend-net
 
@@ -105,3 +123,4 @@ volumes:
   db_data:
   midpoint_data:
   asterisk_agents:
+  asterisk_logs:

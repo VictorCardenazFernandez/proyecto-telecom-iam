@@ -178,10 +178,11 @@ class TestGeneracionSipAgentsConf(unittest.TestCase):
         self.assertIn("[1001]", conf)
         self.assertIn("[1002]", conf)
 
-    def test_formato_sip_correcto(self):
-        """Cada sección debe incluir type, secret, host, context."""
+    def test_formato_pjsip_correcto(self):
+        """Cada agente debe generar las 3 secciones PJSIP: endpoint, auth y aor."""
         conf = provisioner.generar_sip_agents_conf(self.AGENTES_PRUEBA)
-        for campo in ["type=friend", "host=dynamic", "context=interno"]:
+        for campo in ["type=endpoint", "type=auth", "type=aor",
+                      "auth_type=userpass", "context=interno"]:
             self.assertIn(campo, conf, f"Campo requerido '{campo}' no encontrado")
 
     def test_secreto_correcto_por_extension(self):

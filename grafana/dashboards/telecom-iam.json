@@ -1,0 +1,176 @@
+{
+  "id": null,
+  "uid": "telecom-iam-main",
+  "title": "TelecomIAM — Panel de Monitoreo",
+  "description": "Métricas del sistema de comunicaciones y gestión de identidad. ISO 27001 Control A.8.16 — Actividades de Monitoreo.",
+  "tags": ["telecom", "asterisk", "midpoint", "iso27001"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-24h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "title": "Total Agentes Activos",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "yellow", "value": 1 },
+              { "color": "green", "value": 2 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "auto", "textMode": "auto", "colorMode": "background" },
+      "targets": [{
+        "datasource": { "type": "postgres" },
+        "rawSql": "SELECT COUNT(*) FROM usuarios WHERE activo = TRUE AND rol = 'AgenteCallCenter'",
+        "format": "table",
+        "refId": "A"
+      }]
+    },
+    {
+      "id": 2,
+      "title": "Extensiones SIP Aprovisionadas",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "targets": [{
+        "datasource": { "type": "postgres" },
+        "rawSql": "SELECT COUNT(*) FROM extensiones_sip WHERE estado = 'APROVISIONADO'",
+        "format": "table",
+        "refId": "A"
+      }]
+    },
+    {
+      "id": 3,
+      "title": "Total Registros de Auditoría",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "blue" }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "targets": [{
+        "datasource": { "type": "postgres" },
+        "rawSql": "SELECT COUNT(*) FROM auditoria",
+        "format": "table",
+        "refId": "A"
+      }]
+    },
+    {
+      "id": 4,
+      "title": "Usuarios Inactivos",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "yellow", "value": 1 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background" },
+      "targets": [{
+        "datasource": { "type": "postgres" },
+        "rawSql": "SELECT COUNT(*) FROM usuarios WHERE activo = FALSE",
+        "format": "table",
+        "refId": "A"
+      }]
+    },
+    {
+      "id": 5,
+      "title": "Estado de Extensiones SIP",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "fieldConfig": {
+        "defaults": { "custom": { "align": "auto" } },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "estado" },
+            "properties": [{
+              "id": "custom.displayMode",
+              "value": "color-background"
+            }, {
+              "id": "mappings",
+              "value": [
+                { "type": "value", "options": { "APROVISIONADO": { "color": "green", "text": "✅ APROVISIONADO" } } },
+                { "type": "value", "options": { "PENDIENTE": { "color": "yellow", "text": "⏳ PENDIENTE" } } },
+                { "type": "value", "options": { "ERROR": { "color": "red", "text": "❌ ERROR" } } }
+              ]
+            }]
+          }
+        ]
+      },
+      "options": { "showHeader": true },
+      "targets": [{
+        "datasource": { "type": "postgres" },
+        "rawSql": "SELECT u.nombre, u.username, e.extension, e.estado, e.fecha_creacion FROM usuarios u JOIN extensiones_sip e ON u.id = e.usuario_id ORDER BY e.extension",
+        "format": "table",
+        "refId": "A"
+      }]
+    },
+    {
+      "id": 6,
+      "title": "Últimos Eventos de Auditoría (ISO 27001 A.8.16)",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "options": { "showHeader": true },
+      "targets": [{
+        "datasource": { "type": "postgres" },
+        "rawSql": "SELECT fecha, accion, usuario, detalle FROM auditoria ORDER BY fecha DESC LIMIT 20",
+        "format": "table",
+        "refId": "A"
+      }]
+    },
+    {
+      "id": 7,
+      "title": "Aprovisionamientos por Día",
+      "type": "barchart",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "options": { "orientation": "auto", "xTickLabelRotation": 0 },
+      "targets": [{
+        "datasource": { "type": "postgres" },
+        "rawSql": "SELECT DATE(fecha_creacion) as dia, COUNT(*) as total FROM extensiones_sip GROUP BY DATE(fecha_creacion) ORDER BY dia",
+        "format": "table",
+        "refId": "A"
+      }]
+    },
+    {
+      "id": 8,
+      "title": "Distribución de Roles",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "options": { "pieType": "pie", "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [{
+        "datasource": { "type": "postgres" },
+        "rawSql": "SELECT rol, COUNT(*) as total FROM usuarios GROUP BY rol",
+        "format": "table",
+        "refId": "A"
+      }]
+    }
+  ]
+}

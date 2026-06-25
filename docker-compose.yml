@@ -83,6 +83,8 @@ services:
       - asterisk_logs:/var/log/asterisk
       # sip_agents.conf es generado dinámicamente por el provisioner
       - asterisk_agents:/etc/asterisk/agents
+      # Grabaciones de llamadas (MixMonitor → FileBrowser)
+      - asterisk_recordings:/var/spool/asterisk/recording
     depends_on:
       midpoint:
         condition: service_started
@@ -115,6 +117,56 @@ services:
     networks:
       - backend-net
 
+  # ── FileBrowser: Visor y reproductor de grabaciones ─────────────────────
+  # Interfaz web para explorar, descargar y reproducir las grabaciones de
+  # llamadas generadas por Asterisk (MixMonitor → archivos .wav).
+  # Acceso: http://localhost:8088
+  # Usuario/clave inicial: admin / telecom123
+  filebrowser:
+    image: filebrowser/filebrowser:latest
+    container_name: filebrowser
+    ports:
+      - "8088:80"
+    volumes:
+      - asterisk_recordings:/srv    # carpeta raíz del visor = grabaciones
+    environment:
+      FB_USERNAME: admin
+      FB_PASSWORD: telecom123
+    command: --noauth
+    depends_on:
+      - asterisk
+    networks:
+      - backend-net
+    restart: on-failure:3
+
+  # ── Grafana: Dashboard de Monitoreo ──────────────────────────────────────
+  # Visualiza métricas del sistema en tiempo real usando PostgreSQL como
+  # fuente de datos: estado de extensiones, eventos de auditoría (ISO 27001
+  # A.8.16), distribución de roles y aprovisionamientos.
+  # Acceso: http://localhost:3000
+  # Usuario/clave inicial: admin / telecom123
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: telecom123
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_SERVER_DOMAIN: localhost
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend-net
+    restart: on-failure:3
+
 networks:
   backend-net:
     driver: bridge
@@ -124,3 +176,5 @@ volumes:
   midpoint_data:
   asterisk_agents:
   asterisk_logs:
+  asterisk_recordings:
+  grafana_data:

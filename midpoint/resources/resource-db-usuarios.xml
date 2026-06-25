@@ -38,7 +38,7 @@
     <connectorConfiguration
         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties
-            xmlns:ictc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.databasetable-connector/org.identityconnectors.databasetable.DatabaseTableConfiguration">
+            xmlns:ictc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-databasetable/org.identityconnectors.databasetable.DatabaseTableConnector">
 
             <!-- Driver y URL PostgreSQL -->
             <ictc:jdbcDriver>org.postgresql.Driver</ictc:jdbcDriver>
@@ -50,8 +50,7 @@
 
             <!-- Mapeo de la tabla -->
             <ictc:table>usuarios</ictc:table>
-            <ictc:keyColumn>id</ictc:keyColumn>
-            <ictc:passwordColumn>password</ictc:passwordColumn>
+            <ictc:keyColumn>username</ictc:keyColumn>
             <ictc:changeLogColumn>updated_at</ictc:changeLogColumn>
         </icfc:configurationProperties>
     </connectorConfiguration>
@@ -66,17 +65,15 @@
                         <xsd:appinfo>
                             <ra:resourceObject/>
                             <ra:identifier>icfs:uid</ra:identifier>
-                            <ra:displayNameAttribute>ri:username</ra:displayNameAttribute>
-                            <ra:namingAttribute>ri:username</ra:namingAttribute>
+                            <ra:displayNameAttribute>icfs:name</ra:displayNameAttribute>
+                            <ra:namingAttribute>icfs:name</ra:namingAttribute>
                             <ra:kind>account</ra:kind>
                         </xsd:appinfo>
                     </xsd:annotation>
                     <xsd:sequence>
-                        <xsd:element name="id"       type="xsd:string"/>
-                        <xsd:element name="username" type="xsd:string"/>
-                        <xsd:element name="password" type="xsd:string"/>
-                        <xsd:element name="rol"      type="xsd:string"/>
-                        <xsd:element name="activo"   type="xsd:boolean"/>
+                        <xsd:element name="password" type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="rol"      type="xsd:string" minOccurs="0"/>
+                        <xsd:element name="activo"   type="xsd:boolean" minOccurs="0"/>
                         <xsd:element name="nombre"   type="xsd:string" minOccurs="0"/>
                         <xsd:element name="email"    type="xsd:string" minOccurs="0"/>
                     </xsd:sequence>
@@ -93,7 +90,10 @@
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
 
-            <!-- Nombre de usuario → midPoint name -->
+            <!-- ── icfs:name = columna username (keyColumn) ──
+                 Con keyColumn=username, icfs:name mapea directamente al username.
+                 INBOUND:  username de la BD → name en midPoint
+                 OUTBOUND: name de midPoint  → username en la BD -->
             <attribute>
                 <ref>icfs:name</ref>
                 <inbound>
@@ -102,9 +102,17 @@
                         <path>name</path>
                     </target>
                 </inbound>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>name</path>
+                    </source>
+                </outbound>
             </attribute>
 
-            <!-- Nombre completo → fullName -->
+            <!-- ── ri:nombre (columna nombre) ──
+                 INBOUND:  nombre de la BD   → fullName en midPoint
+                 OUTBOUND: fullName de midPoint → nombre en la BD -->
             <attribute>
                 <ref>ri:nombre</ref>
                 <inbound>
@@ -112,9 +120,17 @@
                         <path>fullName</path>
                     </target>
                 </inbound>
+                <outbound>
+                    <strength>normal</strength>
+                    <source>
+                        <path>fullName</path>
+                    </source>
+                </outbound>
             </attribute>
 
-            <!-- Email -->
+            <!-- ── ri:email ──
+                 INBOUND:  email de la BD     → emailAddress en midPoint
+                 OUTBOUND: emailAddress de midPoint → email en la BD -->
             <attribute>
                 <ref>ri:email</ref>
                 <inbound>
@@ -122,9 +138,18 @@
                         <path>emailAddress</path>
                     </target>
                 </inbound>
+                <outbound>
+                    <strength>normal</strength>
+                    <source>
+                        <path>emailAddress</path>
+                    </source>
+                </outbound>
             </attribute>
 
-            <!-- Rol: si es 'AgenteCallCenter', asignar el rol correspondiente en midPoint -->
+            <!-- ── ri:rol ──
+                 INBOUND:  'AgenteCallCenter' en BD → subtype en midPoint
+                 OUTBOUND: siempre escribe 'AgenteCallCenter' en la BD
+                           (el rol que activa el provisioner de Asterisk) -->
             <attribute>
                 <ref>ri:rol</ref>
                 <inbound>
@@ -142,6 +167,34 @@
                         <path>subtype</path>
                     </target>
                 </inbound>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <value>AgenteCallCenter</value>
+                    </expression>
+                </outbound>
+            </attribute>
+
+            <!-- ── ri:activo ──
+                 OUTBOUND: cuando midPoint habilita el usuario → activo=true en BD
+                           cuando midPoint deshabilita         → activo=false en BD -->
+            <attribute>
+                <ref>ri:activo</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
+                                if (legal != null) {
+                                    return legal
+                                }
+                                def status = focus?.activation?.effectiveStatus
+                                return status == ActivationStatusType.ENABLED
+                            </code>
+                        </script>
+                    </expression>
+                </outbound>
             </attribute>
 
             <!-- Activación: columna activo → enabled/disabled -->

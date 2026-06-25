@@ -10,7 +10,7 @@
 CREATE TABLE IF NOT EXISTS usuarios (
     id          SERIAL PRIMARY KEY,
     username    VARCHAR(50)  NOT NULL UNIQUE,
-    password    VARCHAR(100) NOT NULL,
+    password    VARCHAR(100) NOT NULL DEFAULT 'midpoint-managed',
     rol         VARCHAR(50)  NOT NULL,
     activo      BOOLEAN      NOT NULL DEFAULT TRUE,
     email       VARCHAR(100),

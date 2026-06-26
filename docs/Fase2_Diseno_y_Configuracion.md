@@ -126,7 +126,7 @@ asterisk:
   image: andrius/asterisk:latest
   container_name: asterisk
   ports:
-    - "5062:5062/udp"
+    - "5060:5060/udp"
     - "10000-10100:10000-10100/udp"
   volumes:
     - ./asterisk/sip.conf:/etc/asterisk/sip.conf
@@ -141,7 +141,7 @@ asterisk:
 [general]
 context=default
 allowguest=no
-bindport=5062
+bindport=5060
 bindaddr=0.0.0.0
 
 [1001]
@@ -171,7 +171,7 @@ exten => 1002,1,Dial(SIP/1002,20)
 
 **Qué hace:**
 - Define **dos extensiones SIP de prueba** (`1001` y `1002`) creadas manualmente, con contraseña fija `1234`, para validar que el motor de telefonía funciona de extremo a extremo (registro + llamada) **antes** de automatizar la creación de cuentas en la Fase 3.
-- Publica los puertos `5062/udp` (señalización SIP) y el rango `10000-10100/udp` (medios RTP, audio) hacia el host, necesarios para que softphones externos al contenedor (en la máquina del agente) puedan registrarse y transmitir audio.
+- Publica los puertos `5060/udp` (señalización SIP) y el rango `10000-10100/udp` (medios RTP, audio) hacia el host, necesarios para que softphones externos al contenedor (en la máquina del agente) puedan registrarse y transmitir audio.
 - El dialplan permite que la extensión `1001` llame a la `1002` y viceversa, con un timeout de 20 segundos.
 
 > ⚠️ **Deuda técnica conocida para Fase 3:** las credenciales `1001/1234` y `1002/1234` están hardcodeadas en el archivo de configuración. Este es exactamente el problema que la Fase 3 resuelve: reemplazar estas entradas manuales por un archivo `sip_agents.conf` generado automáticamente a partir de lo que midPoint sincroniza desde la base de datos.
@@ -192,14 +192,14 @@ En esta fase se usó la red `bridge` por defecto que Docker Compose crea automá
    │                                                          │
    │   ┌───────────┐      ┌────────────┐      ┌───────────┐  │
    │   │ postgres   │◄────│  midpoint   │      │ asterisk   │  │
-   │   │ :5432      │     │  :8080      │      │ :5062/udp  │  │
+   │   │ :5432      │     │  :8080      │      │ :5060/udp  │  │
    │   └───────────┘      └────────────┘      │ :10000-     │  │
    │                                            │ 10100/udp  │  │
    │                                            └───────────┘  │
    └───────────────────────────────────────────────────────┘
               ▲                    ▲                  ▲
               │                    │                  │
-         host:5432            host:8080         host:5062/udp
+         host:5432            host:8080         host:5060/udp
                                                   host:10000-10100/udp
 ```
 
@@ -251,7 +251,7 @@ docker ps
 ```
 
 - Consola midPoint: http://localhost:8080/midpoint
-- Asterisk SIP: configurar un softphone (Zoiper/Linphone/MicroSIP) con servidor = IP del host, puerto `5062`, extensión `1001` o `1002`, contraseña `1234`.
+- Asterisk SIP: configurar un softphone (Zoiper/Linphone/MicroSIP) con servidor = IP del host, puerto `5060`, extensión `1001` o `1002`, contraseña `1234`.
 
 ---
 

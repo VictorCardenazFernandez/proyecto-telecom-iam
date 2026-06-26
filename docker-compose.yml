@@ -72,7 +72,7 @@ services:
     image: andrius/asterisk:latest
     container_name: asterisk
     ports:
-      - "5062:5062/udp"
+      - "5060:5060/udp"
       - "10000-10100:10000-10100/udp"
       - "5038:5038"           # AMI (Asterisk Manager Interface)
     volumes:

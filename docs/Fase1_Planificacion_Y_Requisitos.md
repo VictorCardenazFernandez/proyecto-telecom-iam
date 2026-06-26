@@ -52,7 +52,7 @@ El CDR se almacena en la base de datos para auditoría/reportes
 - **No decide quién tiene permiso de qué** — esa lógica de negocio (roles, accesos) vive en midPoint; Asterisk solo ejecuta lo que midPoint le indica.
 
 **Imagen base:** contenedor personalizado sobre `debian:bullseye` que compila Asterisk con los módulos necesarios (chan_pjsip, app_queue, cdr_*, res_srtp).
-**Puertos expuestos:** `5062/udp-tcp` (SIP), `10000-10100/udp` (RTP).
+**Puertos expuestos:** `5060/udp-tcp` (SIP), `10000-10100/udp` (RTP).
 
 ---
 
@@ -93,7 +93,7 @@ Almacena dos tipos de información claramente separados (en esquemas/bases de da
 **Responsabilidad principal:** ser el **punto de acceso del agente de call center** a la central telefónica.
 
 - Aplicación cliente SIP (Linphone, Zoiper, MicroSIP o un softphone WebRTC embebido en navegador).
-- Se configura con los parámetros provistos automáticamente por la sincronización midPoint → Asterisk: **servidor (IP del contenedor Asterisk), puerto 5062, número de extensión y contraseña (secret)**.
+- Se configura con los parámetros provistos automáticamente por la sincronización midPoint → Asterisk: **servidor (IP del contenedor Asterisk), puerto 5060, número de extensión y contraseña (secret)**.
 - Permite **registrarse** contra el PBX (estado "Registrado"), **recibir y realizar llamadas** entre extensiones.
 - No almacena lógica de negocio ni credenciales maestras: solo consume lo que el ecosistema (midPoint + Asterisk) ya configuró.
 
@@ -215,7 +215,7 @@ Flujo de datos:
 - **Red interna `backend-net` (bridge):** conecta `db`, `midpoint`, `asterisk` — comunicación privada, sin exposición innecesaria.
 - **Puertos publicados al host:**
   - `8080` → midPoint (consola administrativa).
-  - `5062/udp` + `10000-10100/udp` → Asterisk (SIP/RTP), necesarios para que los softphones externos al contenedor (en la máquina del agente) se conecten.
+  - `5060/udp` + `10000-10100/udp` → Asterisk (SIP/RTP), necesarios para que los softphones externos al contenedor (en la máquina del agente) se conecten.
   - `3306` (o `5432`) → Base de datos, expuesto solo si se requiere acceso externo para depuración (en producción se recomendaría no publicarlo).
 - **Volúmenes:**
   - `db_data` → persistencia de la base de datos.

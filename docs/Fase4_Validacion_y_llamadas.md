@@ -20,7 +20,7 @@ Se migró toda la pila de configuración de `chan_sip` a **PJSIP** (el único ca
 | Archivo | Acción | Motivo |
 |---|---|---|
 | `asterisk/sip.conf` | **Eliminado** | `chan_sip` no existe en Asterisk 22; el archivo ya no aplica |
-| `asterisk/pjsip.conf` | **Creado** | Reemplaza a `sip.conf`: transporte UDP 5062 + include de extensiones generadas |
+| `asterisk/pjsip.conf` | **Creado** | Reemplaza a `sip.conf`: transporte UDP 5060 + include de extensiones generadas |
 | `asterisk/extensions.conf` | Modificado | `Dial(SIP/${EXTEN})` → `Dial(PJSIP/${EXTEN})` |
 | `asterisk/manager.conf` | Modificado | Se agregó la clase de privilegio `command` al usuario AMI del provisioner (sin ella, `Action: Command` devuelve "Permission denied") |
 | `docker-compose.yml` | Modificado | El volumen monta `pjsip.conf` en vez de `sip.conf` |
@@ -144,7 +144,7 @@ docker exec -it asterisk asterisk -rx "pjsip show endpoints"
 | Username | el `extension` de la tabla (ej. `1001`) |
 | Password | el `sip_secret` de la tabla |
 | Domain/Host | `127.0.0.1` (si el softphone corre en la misma máquina que Docker) |
-| Puerto | `5062` |
+| Puerto | `5060` |
 | Transporte | **UDP** (forzarlo explícitamente; algunos clientes intentan TLS por defecto) |
 | STUN | Desactivado (innecesario en pruebas locales, puede causar fallos de registro) |
 

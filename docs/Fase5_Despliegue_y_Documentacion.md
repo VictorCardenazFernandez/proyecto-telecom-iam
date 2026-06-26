@@ -34,7 +34,7 @@ docker compose up --build -d
 | `postgres` | `postgres:16` | 5432 | Base de datos principal (tablas de negocio + repositorio midPoint) |
 | `midpoint` | `evolveum/midpoint` (custom) | 8080 | Gobernanza de identidad (IAM / RBAC) |
 | `asterisk-init` | `andrius/asterisk` | — | Init: crea directorio CDR con permisos correctos (corre 1 vez) |
-| `asterisk` | `andrius/asterisk` | 5062/udp, 10000-10100/udp, 5038 | PBX / motor VoIP (PJSIP) |
+| `asterisk` | `andrius/asterisk` | 5060/udp, 10000-10100/udp, 5038 | PBX / motor VoIP (PJSIP) |
 | `provisioner` | Python 3.12 (custom) | — | Sincronización BD → Asterisk cada 30s |
 | `filebrowser` | `filebrowser/filebrowser` | 8088 | Visor web de grabaciones de llamadas |
 | `grafana` | `grafana/grafana` | 3000 | Dashboard de monitoreo ISO 27001 A.8.16 |
@@ -76,7 +76,7 @@ docker exec -it asterisk asterisk -rx "pjsip show endpoints"
   (MicroSIP /       │  │  provisioner│    │   midPoint    │    │       postgres        │ │
    Zoiper /    SIP  │  │  (Python)   │───►│   :8080       │───►│  DB: telecom         │ │
    Linphone)  ─────►│  │             │    │  IAM / RBAC   │    │  DB: midpoint        │ │
-              5062  │  │ Ciclo 30s:  │    │  171 objetos  │    │  Tablas:             │ │
+              5060  │  │ Ciclo 30s:  │    │  171 objetos  │    │  Tablas:             │ │
                     │  │ BD→pjsip    │    │  importados   │    │  · usuarios          │ │
                     │  │ _agents.conf│    └──────────────┘    │  · extensiones_sip   │ │
                     │  │ pjsip reload│◄───────────────────────│  · cdr               │ │
@@ -117,7 +117,7 @@ Flujo de aprovisionamiento:
 
 ```
 NAME            IMAGE                    STATUS          PORTS
-asterisk        andrius/asterisk:latest  Up (healthy)    0.0.0.0:5062->5062/udp
+asterisk        andrius/asterisk:latest  Up (healthy)    0.0.0.0:5060->5060/udp
 asterisk-init   andrius/asterisk:latest  Exited (0)      — (completó exitosamente)
 filebrowser     filebrowser/filebrowser  Up              0.0.0.0:8088->80/tcp
 grafana         grafana/grafana:latest   Up              0.0.0.0:3000->3000/tcp
@@ -155,7 +155,7 @@ Configuración en MicroSIP / Zoiper para conectar:
 | Username / Extension | `1001` (o la extensión asignada) |
 | Password | Secret de la tabla `extensiones_sip` |
 | Domain / Server | `127.0.0.1` |
-| Port | `5062` |
+| Port | `5060` |
 | Transport | `UDP` (forzado) |
 | STUN | Desactivado |
 

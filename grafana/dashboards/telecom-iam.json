@@ -128,7 +128,7 @@
       "options": { "showHeader": true },
       "targets": [{
         "datasource": { "type": "postgres" },
-        "rawSql": "SELECT u.nombre, u.username, e.extension, e.estado, e.fecha_creacion FROM usuarios u JOIN extensiones_sip e ON u.id = e.usuario_id ORDER BY e.extension",
+        "rawSql": "SELECT u.nombre, u.username, e.extension, e.estado, e.aprovisionado_en FROM usuarios u JOIN extensiones_sip e ON u.id = e.usuario_id ORDER BY e.extension",
         "format": "table",
         "refId": "A"
       }]
@@ -141,7 +141,7 @@
       "options": { "showHeader": true },
       "targets": [{
         "datasource": { "type": "postgres" },
-        "rawSql": "SELECT fecha, accion, usuario, detalle FROM auditoria ORDER BY fecha DESC LIMIT 20",
+        "rawSql": "SELECT timestamp, accion, actor, detalle, resultado FROM auditoria ORDER BY timestamp DESC LIMIT 20",
         "format": "table",
         "refId": "A"
       }]
@@ -154,7 +154,7 @@
       "options": { "orientation": "auto", "xTickLabelRotation": 0 },
       "targets": [{
         "datasource": { "type": "postgres" },
-        "rawSql": "SELECT DATE(fecha_creacion) as dia, COUNT(*) as total FROM extensiones_sip GROUP BY DATE(fecha_creacion) ORDER BY dia",
+        "rawSql": "SELECT DATE(aprovisionado_en) as dia, COUNT(*) as total FROM extensiones_sip WHERE aprovisionado_en IS NOT NULL GROUP BY DATE(aprovisionado_en) ORDER BY dia",
         "format": "table",
         "refId": "A"
       }]

@@ -43,7 +43,7 @@ AMI_USER     = os.getenv("AMI_USER",     "provisioner")
 AMI_SECRET   = os.getenv("AMI_SECRET",   "prov1234")
 
 POLL_INTERVAL      = int(os.getenv("POLL_INTERVAL", "30"))
-SIP_AGENTS_PATH    = os.getenv("SIP_AGENTS_PATH", "/etc/asterisk/agents/pjsip_agents.conf")
+SIP_AGENTS_PATH = os.getenv("SIP_AGENTS_PATH", "/etc/asterisk/agents/pjsip_agents.conf")
 
 # Rango de extensiones asignadas automáticamente
 EXTENSION_START = 1001

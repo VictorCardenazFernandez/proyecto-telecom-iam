@@ -1,0 +1,150 @@
+
+Report Summary
+
+┌───────────────────────────────────────┬────────┬─────────────────┬─────────┐
+│                Target                 │  Type  │ Vulnerabilities │ Secrets │
+├───────────────────────────────────────┼────────┼─────────────────┼─────────┤
+│ andrius/asterisk:latest (debian 13.5) │ debian │       33        │    -    │
+└───────────────────────────────────────┴────────┴─────────────────┴─────────┘
+Legend:
+- '-': Not scanned
+- '0': Clean (no security findings detected)
+
+
+andrius/asterisk:latest (debian 13.5)
+=====================================
+Total: 33 (HIGH: 27, CRITICAL: 6)
+
+┌───────────────────────┬────────────────┬──────────┬──────────────┬───────────────────┬──────────────────┬──────────────────────────────────────────────────────────────┐
+│        Library        │ Vulnerability  │ Severity │    Status    │ Installed Version │  Fixed Version   │                            Title                             │
+├───────────────────────┼────────────────┼──────────┼──────────────┼───────────────────┼──────────────────┼──────────────────────────────────────────────────────────────┤
+│ curl                  │ CVE-2026-5773  │ HIGH     │ affected     │ 8.14.1-2+deb13u3  │                  │ curl: libcurl: Wrong file transfer due to incorrect SMB      │
+│                       │                │          │              │                   │                  │ connection reuse                                             │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-5773                    │
+│                       ├────────────────┤          │              │                   ├──────────────────┼──────────────────────────────────────────────────────────────┤
+│                       │ CVE-2026-6276  │          │              │                   │                  │ curl: libcurl: Information disclosure due to cookie leak     │
+│                       │                │          │              │                   │                  │ when reusing connections with...                             │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-6276                    │
+├───────────────────────┼────────────────┤          │              ├───────────────────┼──────────────────┼──────────────────────────────────────────────────────────────┤
+│ gzip                  │ CVE-2026-41992 │          │              │ 1.13-1            │                  │ GNU gzip contains a global buffer overflow vulnerability in  │
+│                       │                │          │              │                   │                  │ the LZH de...                                                │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-41992                   │
+├───────────────────────┼────────────────┤          │              ├───────────────────┼──────────────────┼──────────────────────────────────────────────────────────────┤
+│ libacl1               │ CVE-2026-54369 │          │              │ 2.3.2-2+b1        │                  │ acl: Symlink traversal privilege escalation via libacl       │
+│                       │                │          │              │                   │                  │ functions                                                    │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-54369                   │
+├───────────────────────┼────────────────┤          │              ├───────────────────┼──────────────────┼──────────────────────────────────────────────────────────────┤
+│ libattr1              │ CVE-2026-54371 │          │              │ 1:2.5.2-3         │                  │ attr: Symlink Traversal Privilege Escalation via getfattr    │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-54371                   │
+├───────────────────────┼────────────────┤          │              ├───────────────────┼──────────────────┼──────────────────────────────────────────────────────────────┤
+│ libcurl4t64           │ CVE-2026-5773  │          │              │ 8.14.1-2+deb13u3  │                  │ curl: libcurl: Wrong file transfer due to incorrect SMB      │
+│                       │                │          │              │                   │                  │ connection reuse                                             │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-5773                    │
+│                       ├────────────────┤          │              │                   ├──────────────────┼──────────────────────────────────────────────────────────────┤
+│                       │ CVE-2026-6276  │          │              │                   │                  │ curl: libcurl: Information disclosure due to cookie leak     │
+│                       │                │          │              │                   │                  │ when reusing connections with...                             │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-6276                    │
+├───────────────────────┼────────────────┤          │              ├───────────────────┼──────────────────┼──────────────────────────────────────────────────────────────┤
+│ libexpat1             │ CVE-2025-59375 │          │              │ 2.7.1-2           │                  │ firefox: thunderbird: expat: libexpat in Expat allows        │
+│                       │                │          │              │                   │                  │ attackers to trigger large dynamic...                        │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2025-59375                   │
+│                       ├────────────────┤          │              │                   ├──────────────────┼──────────────────────────────────────────────────────────────┤
+│                       │ CVE-2026-25210 │          │              │                   │                  │ libexpat: libexpat: Information disclosure and data          │
+│                       │                │          │              │                   │                  │ integrity issues due to integer overflow...                  │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-25210                   │
+│                       ├────────────────┤          │              │                   ├──────────────────┼──────────────────────────────────────────────────────────────┤
+│                       │ CVE-2026-45186 │          │              │                   │                  │ libexpat: denial of service via crafted XML input            │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-45186                   │
+├───────────────────────┼────────────────┤          │              ├───────────────────┼──────────────────┼──────────────────────────────────────────────────────────────┤
+│ libncurses6           │ CVE-2025-69720 │          │              │ 6.5+20250216-2    │                  │ ncurses: ncurses: Buffer overflow vulnerability may lead to  │
+│                       │                │          │              │                   │                  │ arbitrary code execution.                                    │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2025-69720                   │
+├───────────────────────┤                │          │              │                   ├──────────────────┤                                                              │
+│ libncursesw6          │                │          │              │                   │                  │                                                              │
+│                       │                │          │              │                   │                  │                                                              │
+│                       │                │          │              │                   │                  │                                                              │
+├───────────────────────┼────────────────┼──────────┤              ├───────────────────┼──────────────────┼──────────────────────────────────────────────────────────────┤
+│ libpython3.13-minimal │ CVE-2026-11940 │ CRITICAL │              │ 3.13.5-2+deb13u2  │                  │ tarfile.extractall() with the 'data' or 'tar' filter could   │
+│                       │                │          │              │                   │                  │ be bypasse ......                                            │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-11940                   │
+│                       ├────────────────┼──────────┤              │                   ├──────────────────┼──────────────────────────────────────────────────────────────┤
+│                       │ CVE-2026-7210  │ HIGH     │              │                   │                  │ python: expat: Python/Expat: Denial of Service via crafted   │
+│                       │                │          │              │                   │                  │ XML document                                                 │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-7210                    │
+├───────────────────────┼────────────────┼──────────┤              │                   ├──────────────────┼──────────────────────────────────────────────────────────────┤
+│ libpython3.13-stdlib  │ CVE-2026-11940 │ CRITICAL │              │                   │                  │ tarfile.extractall() with the 'data' or 'tar' filter could   │
+│                       │                │          │              │                   │                  │ be bypasse ......                                            │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-11940                   │
+│                       ├────────────────┼──────────┤              │                   ├──────────────────┼──────────────────────────────────────────────────────────────┤
+│                       │ CVE-2026-7210  │ HIGH     │              │                   │                  │ python: expat: Python/Expat: Denial of Service via crafted   │
+│                       │                │          │              │                   │                  │ XML document                                                 │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-7210                    │
+├───────────────────────┼────────────────┤          ├──────────────┼───────────────────┼──────────────────┼──────────────────────────────────────────────────────────────┤
+│ libssh2-1t64          │ CVE-2026-55199 │          │ fixed        │ 1.11.1-1          │ 1.11.1-1+deb13u1 │ libssh2: libssh2: Denial of Service via crafted              │
+│                       │                │          │              │                   │                  │ SSH_MSG_EXT_INFO message                                     │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-55199                   │
+│                       ├────────────────┤          │              │                   │                  ├──────────────────────────────────────────────────────────────┤
+│                       │ CVE-2026-55200 │          │              │                   │                  │ libssh2: libssh2 - Out-of-Bounds Write via Unchecked         │
+│                       │                │          │              │                   │                  │ packet_length in transport.c                                 │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-55200                   │
+│                       ├────────────────┤          ├──────────────┤                   ├──────────────────┼──────────────────────────────────────────────────────────────┤
+│                       │ CVE-2026-58050 │          │ affected     │                   │                  │ libssh2: libssh2: Heap buffer overflow via integer overflow  │
+│                       │                │          │              │                   │                  │ in publickey attribute allocation...                         │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-58050                   │
+│                       ├────────────────┤          ├──────────────┤                   ├──────────────────┼──────────────────────────────────────────────────────────────┤
+│                       │ CVE-2026-7598  │          │ fixed        │                   │ 1.11.1-1+deb13u1 │ libssh2: integer overflow via large username or password     │
+│                       │                │          │              │                   │                  │ arguments                                                    │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-7598                    │
+├───────────────────────┼────────────────┤          ├──────────────┼───────────────────┼──────────────────┼──────────────────────────────────────────────────────────────┤
+│ libtiff6              │ CVE-2026-12912 │          │ affected     │ 4.7.0-3+deb13u2   │                  │ libtiff: libtiff: Heap-based buffer overflow via crafted     │
+│                       │                │          │              │                   │                  │ PixarLog-compressed TIFF image                               │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-12912                   │
+├───────────────────────┼────────────────┤          │              ├───────────────────┼──────────────────┼──────────────────────────────────────────────────────────────┤
+│ libtinfo6             │ CVE-2025-69720 │          │              │ 6.5+20250216-2    │                  │ ncurses: ncurses: Buffer overflow vulnerability may lead to  │
+│                       │                │          │              │                   │                  │ arbitrary code execution.                                    │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2025-69720                   │
+├───────────────────────┤                │          │              │                   ├──────────────────┤                                                              │
+│ ncurses-base          │                │          │              │                   │                  │                                                              │
+│                       │                │          │              │                   │                  │                                                              │
+│                       │                │          │              │                   │                  │                                                              │
+├───────────────────────┤                │          │              │                   ├──────────────────┤                                                              │
+│ ncurses-bin           │                │          │              │                   │                  │                                                              │
+│                       │                │          │              │                   │                  │                                                              │
+│                       │                │          │              │                   │                  │                                                              │
+├───────────────────────┼────────────────┼──────────┼──────────────┼───────────────────┼──────────────────┼──────────────────────────────────────────────────────────────┤
+│ perl-base             │ CVE-2026-42496 │ CRITICAL │ fix_deferred │ 5.40.1-6          │                  │ perl-archive-tar: perl-archive-tar: Path traversal via       │
+│                       │                │          │              │                   │                  │ crafted symlinks allows arbitrary file access                │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-42496                   │
+│                       ├────────────────┤          ├──────────────┤                   ├──────────────────┼──────────────────────────────────────────────────────────────┤
+│                       │ CVE-2026-8376  │          │ affected     │                   │                  │ Perl versions through 5.43.10 have a heap buffer overflow    │
+│                       │                │          │              │                   │                  │ when compili ......                                          │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-8376                    │
+│                       ├────────────────┼──────────┼──────────────┤                   ├──────────────────┼──────────────────────────────────────────────────────────────┤
+│                       │ CVE-2026-42497 │ HIGH     │ fix_deferred │                   │                  │ perl-Archive-Tar: perl-Archive-Tar: Arbitrary file           │
+│                       │                │          │              │                   │                  │ modification via crafted hardlinks during archive extraction │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-42497                   │
+│                       ├────────────────┤          ├──────────────┤                   ├──────────────────┼──────────────────────────────────────────────────────────────┤
+│                       │ CVE-2026-48962 │          │ affected     │                   │                  │ perl-IO-Compress: perl-IO-Compress: Arbitrary code execution │
+│                       │                │          │              │                   │                  │ via attacker-controlled output glob                          │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-48962                   │
+│                       ├────────────────┤          ├──────────────┤                   ├──────────────────┼──────────────────────────────────────────────────────────────┤
+│                       │ CVE-2026-9538  │          │ fix_deferred │                   │                  │ Archive::Tar versions before 3.10 for Perl allow memory      │
+│                       │                │          │              │                   │                  │ exhaustion via ...                                           │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-9538                    │
+├───────────────────────┼────────────────┼──────────┼──────────────┼───────────────────┼──────────────────┼──────────────────────────────────────────────────────────────┤
+│ python3.13            │ CVE-2026-11940 │ CRITICAL │ affected     │ 3.13.5-2+deb13u2  │                  │ tarfile.extractall() with the 'data' or 'tar' filter could   │
+│                       │                │          │              │                   │                  │ be bypasse ......                                            │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-11940                   │
+│                       ├────────────────┼──────────┤              │                   ├──────────────────┼──────────────────────────────────────────────────────────────┤
+│                       │ CVE-2026-7210  │ HIGH     │              │                   │                  │ python: expat: Python/Expat: Denial of Service via crafted   │
+│                       │                │          │              │                   │                  │ XML document                                                 │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-7210                    │
+├───────────────────────┼────────────────┼──────────┤              │                   ├──────────────────┼──────────────────────────────────────────────────────────────┤
+│ python3.13-minimal    │ CVE-2026-11940 │ CRITICAL │              │                   │                  │ tarfile.extractall() with the 'data' or 'tar' filter could   │
+│                       │                │          │              │                   │                  │ be bypasse ......                                            │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-11940                   │
+│                       ├────────────────┼──────────┤              │                   ├──────────────────┼──────────────────────────────────────────────────────────────┤
+│                       │ CVE-2026-7210  │ HIGH     │              │                   │                  │ python: expat: Python/Expat: Denial of Service via crafted   │
+│                       │                │          │              │                   │                  │ XML document                                                 │
+│                       │                │          │              │                   │                  │ https://avd.aquasec.com/nvd/cve-2026-7210                    │
+└───────────────────────┴────────────────┴──────────┴──────────────┴───────────────────┴──────────────────┴──────────────────────────────────────────────────────────────┘

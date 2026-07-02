@@ -1,0 +1,56 @@
+
+Report Summary
+
+┌─────────────────────────────────────────────────────┬────────┬─────────────────┬─────────┐
+│                       Target                        │  Type  │ Vulnerabilities │ Secrets │
+├─────────────────────────────────────────────────────┼────────┼─────────────────┼─────────┤
+│ proyecto-telecom-iam-midpoint:latest (ubuntu 24.04) │ ubuntu │        0        │    -    │
+├─────────────────────────────────────────────────────┼────────┼─────────────────┼─────────┤
+│ opt/midpoint/lib/midpoint.jar                       │  jar   │        6        │    -    │
+├─────────────────────────────────────────────────────┼────────┼─────────────────┼─────────┤
+│ opt/midpoint/lib/ninja.jar                          │  jar   │        2        │    -    │
+└─────────────────────────────────────────────────────┴────────┴─────────────────┴─────────┘
+Legend:
+- '-': Not scanned
+- '0': Clean (no security findings detected)
+
+
+Java (jar)
+==========
+Total: 8 (HIGH: 8, CRITICAL: 0)
+
+┌────────────────────────────────────────────────────────────┬────────────────┬──────────┬────────┬───────────────────┬─────────────────────────────┬──────────────────────────────────────────────────────────────┐
+│                          Library                           │ Vulnerability  │ Severity │ Status │ Installed Version │        Fixed Version        │                            Title                             │
+├────────────────────────────────────────────────────────────┼────────────────┼──────────┼────────┼───────────────────┼─────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ com.fasterxml.jackson.core:jackson-databind (midpoint.jar) │ CVE-2026-54512 │ HIGH     │ fixed  │ 2.21.2            │ 2.18.8, 3.1.4, 2.21.4       │ jackson-databind: jackson-databind: Arbitrary code execution │
+│                                                            │                │          │        │                   │                             │ via PolymorphicTypeValidator bypass                          │
+│                                                            │                │          │        │                   │                             │ https://avd.aquasec.com/nvd/cve-2026-54512                   │
+├────────────────────────────────────────────────────────────┤                │          │        │                   │                             │                                                              │
+│ com.fasterxml.jackson.core:jackson-databind (ninja.jar)    │                │          │        │                   │                             │                                                              │
+│                                                            │                │          │        │                   │                             │                                                              │
+│                                                            │                │          │        │                   │                             │                                                              │
+├────────────────────────────────────────────────────────────┼────────────────┤          │        │                   ├─────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ com.fasterxml.jackson.core:jackson-databind (midpoint.jar) │ CVE-2026-54513 │          │        │                   │ 2.18.8, 2.21.4, 3.1.4       │ jackson-databind: Jackson-databind: Security bypass allows   │
+│                                                            │                │          │        │                   │                             │ arbitrary code execution                                     │
+│                                                            │                │          │        │                   │                             │ https://avd.aquasec.com/nvd/cve-2026-54513                   │
+├────────────────────────────────────────────────────────────┤                │          │        │                   │                             │                                                              │
+│ com.fasterxml.jackson.core:jackson-databind (ninja.jar)    │                │          │        │                   │                             │                                                              │
+│                                                            │                │          │        │                   │                             │                                                              │
+│                                                            │                │          │        │                   │                             │                                                              │
+├────────────────────────────────────────────────────────────┼────────────────┤          │        ├───────────────────┼─────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ commons-io:commons-io (midpoint.jar)                       │ CVE-2024-47554 │          │        │ 2.8.0             │ 2.14.0                      │ apache-commons-io: Possible denial of service attack on      │
+│                                                            │                │          │        │                   │                             │ untrusted input to XmlStreamReader                           │
+│                                                            │                │          │        │                   │                             │ https://avd.aquasec.com/nvd/cve-2024-47554                   │
+├────────────────────────────────────────────────────────────┼────────────────┤          │        ├───────────────────┼─────────────────────────────┼──────────────────────────────────────────────────────────────┤
+│ io.netty:netty-handler (midpoint.jar)                      │ CVE-2026-44249 │          │        │ 4.1.133.Final     │ 4.2.15.Final, 4.1.135.Final │ netty-handler: netty-handler: IPv6 subnet rule bypass due to │
+│                                                            │                │          │        │                   │                             │ incorrect masking operation                                  │
+│                                                            │                │          │        │                   │                             │ https://avd.aquasec.com/nvd/cve-2026-44249                   │
+│                                                            ├────────────────┤          │        │                   │                             ├──────────────────────────────────────────────────────────────┤
+│                                                            │ CVE-2026-45416 │          │        │                   │                             │ netty-handler: Netty: Denial of Service due to eager buffer  │
+│                                                            │                │          │        │                   │                             │ allocation in TLS...                                         │
+│                                                            │                │          │        │                   │                             │ https://avd.aquasec.com/nvd/cve-2026-45416                   │
+│                                                            ├────────────────┤          │        │                   │                             ├──────────────────────────────────────────────────────────────┤
+│                                                            │ CVE-2026-50010 │          │        │                   │                             │ netty-handler: Netty: Improper trust manager handling leads  │
+│                                                            │                │          │        │                   │                             │ to hostname verification bypass                              │
+│                                                            │                │          │        │                   │                             │ https://avd.aquasec.com/nvd/cve-2026-50010                   │
+└────────────────────────────────────────────────────────────┴────────────────┴──────────┴────────┴───────────────────┴─────────────────────────────┴──────────────────────────────────────────────────────────────┘
